@@ -1,0 +1,17 @@
+{
+  "name": "open-project",
+  "version": "0.1.0",
+  "description": "A 30/6/2026-locked AI employee swarm CLI for production-grade project planning and building with the user's own AI coding engine.",
+  "type": "module",
+  "bin": {
+    "open-project": "./bin/open-project.js"
+  },
+  "scripts": {
+    "publish:github": "node ./scripts/publish-github.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}

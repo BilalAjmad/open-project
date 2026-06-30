@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { buildDoPrompt, buildIdeaPrompt } from "../src/prompts.js";
 import { parseCommand, validatePrompt, wantsLatestPlan } from "../src/gates.js";
 import { ENGINE_REGISTRY, resolveEngine } from "../src/engine.js";
+import { installIntegrations } from "../src/integrations.js";
 
 test("accepts only the three slash commands", () => {
+  assert.deepEqual(parseCommand(["install"]), { command: "install", input: "" });
   assert.deepEqual(parseCommand(["/idea", "make", "app"]), { command: "/idea", input: "make app" });
   assert.deepEqual(parseCommand(["/do", "latest"]), { command: "/do", input: "latest" });
   assert.deepEqual(parseCommand(["/ship"]), { command: "/ship", input: "" });
@@ -33,5 +38,23 @@ test("custom engine uses the user-provided local command", () => {
 test("registry covers broad AI coding engines and IDE adapters", () => {
   for (const engine of ["codex", "claude", "cursor", "windsurf", "copilot", "gemini", "qwen", "opencode", "aider", "continue", "ollama"]) {
     assert.ok(ENGINE_REGISTRY[engine], `${engine} missing`);
+  }
+});
+
+test("installer creates AI IDE integration files without overwriting existing files", async () => {
+  const originalCwd = process.cwd();
+  const dir = await mkdtemp(join(tmpdir(), "open-project-"));
+  try {
+    process.chdir(dir);
+    await writeFile("CLAUDE.md", "keep me", "utf8");
+
+    const result = await installIntegrations();
+    assert.equal(result.some((file) => file.path === ".claude/commands/idea.md" && file.status === "created"), true);
+    assert.equal(result.some((file) => file.path === "CLAUDE.md" && file.status === "skipped"), true);
+    assert.match(await readFile(".cursor/rules/open-project.mdc", "utf8"), /30\/6\/2026/);
+    assert.equal(await readFile("CLAUDE.md", "utf8"), "keep me");
+  } finally {
+    process.chdir(originalCwd);
+    await rm(dir, { recursive: true, force: true });
   }
 });

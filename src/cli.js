@@ -2,12 +2,20 @@ import { buildDoPrompt, buildIdeaPrompt, buildShipPrompt } from "./prompts.js";
 import { ensureState, approveLatestPlan, readApprovedPlan, saveLatestPlan, writeTrace } from "./state.js";
 import { parseOptions, resolveEngine, runEngine } from "./engine.js";
 import { isApproval, parseCommand, requireInput, validatePrompt, wantsLatestPlan } from "./gates.js";
+import { installIntegrations } from "./integrations.js";
 
 export async function runCli(rawArgs) {
   const { options, rest } = parseOptions(rawArgs);
   const { command, input } = parseCommand(rest);
   requireInput(command, input);
   await ensureState();
+
+  if (command === "install") {
+    const files = await installIntegrations();
+    console.log("open project integrations installed:");
+    for (const file of files) console.log(`- ${file.status}: ${file.path}`);
+    return;
+  }
 
   if (command === "/idea" && isApproval(input)) {
     const file = await approveLatestPlan();

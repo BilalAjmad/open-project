@@ -2,13 +2,15 @@ import { COMMANDS, TARGET_DATE_LABEL } from "./constants.js";
 
 export function parseCommand(argv) {
   const command = argv[0];
+  if (command === "install") return { command, input: argv.slice(1).join(" ").trim() };
   if (!COMMANDS.has(command)) {
-    throw new Error(`Use one of: ${[...COMMANDS].join(", ")}`);
+    throw new Error(`Use one of: install, ${[...COMMANDS].join(", ")}`);
   }
   return { command, input: argv.slice(1).join(" ").trim() };
 }
 
 export function requireInput(command, input) {
+  if (command === "install") return;
   if (command === "/ship") return;
   if (!input) throw new Error(`${command} needs text after it.`);
 }

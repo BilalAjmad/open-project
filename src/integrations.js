@@ -48,45 +48,81 @@ async function writeText(path, content) {
   }
 }
 
-function projectFiles() {
-  return {
-    ".claude/commands/idea.md": COMMAND_BRIDGE.replace("{command}", "/idea"),
-    ".claude/commands/do.md": COMMAND_BRIDGE.replace("{command}", "/do"),
-    ".claude/commands/ship.md": COMMAND_BRIDGE.replace("{command}", "/ship"),
-    ".cursor/rules/open-project.mdc": RULE_FILE,
-    ".windsurf/rules/open-project.md": RULE_FILE,
-    ".github/copilot-instructions.md": AGENT_RULES,
-    ".continue/rules/open-project.md": AGENT_RULES,
-    ".opencode/AGENTS.md": AGENT_RULES,
-    "CLAUDE.md": AGENT_RULES,
-    "GEMINI.md": AGENT_RULES,
-    "QWEN.md": AGENT_RULES
-  };
+export const INTEGRATION_TARGETS = [
+  { id: "claude", label: "Claude Code slash commands" },
+  { id: "codex", label: "Codex global instructions" },
+  { id: "opencode", label: "OpenCode instructions" },
+  { id: "cursor", label: "Cursor rules" },
+  { id: "windsurf", label: "Windsurf rules" },
+  { id: "copilot", label: "GitHub Copilot instructions" },
+  { id: "continue", label: "Continue rules" },
+  { id: "gemini", label: "Gemini CLI instructions" },
+  { id: "qwen", label: "Qwen Code instructions" },
+  { id: "common", label: "Common project instruction files" }
+];
+
+function selectedSet(targets) {
+  if (!targets || targets.length === 0 || targets.includes("all")) {
+    return new Set(INTEGRATION_TARGETS.map((target) => target.id));
+  }
+  return new Set(targets);
 }
 
-function globalFiles(home = homedir()) {
-  return {
+function projectFiles(targets) {
+  const selected = selectedSet(targets);
+  const files = {};
+
+  if (selected.has("claude")) {
+    Object.assign(files, {
+    ".claude/commands/idea.md": COMMAND_BRIDGE.replace("{command}", "/idea"),
+    ".claude/commands/do.md": COMMAND_BRIDGE.replace("{command}", "/do"),
+    ".claude/commands/ship.md": COMMAND_BRIDGE.replace("{command}", "/ship")
+    });
+  }
+  if (selected.has("cursor")) files[".cursor/rules/open-project.mdc"] = RULE_FILE;
+  if (selected.has("windsurf")) files[".windsurf/rules/open-project.md"] = RULE_FILE;
+  if (selected.has("copilot")) files[".github/copilot-instructions.md"] = AGENT_RULES;
+  if (selected.has("continue")) files[".continue/rules/open-project.md"] = AGENT_RULES;
+  if (selected.has("opencode")) files[".opencode/AGENTS.md"] = AGENT_RULES;
+  if (selected.has("common") || selected.has("claude")) files["CLAUDE.md"] = AGENT_RULES;
+  if (selected.has("common") || selected.has("gemini")) files["GEMINI.md"] = AGENT_RULES;
+  if (selected.has("common") || selected.has("qwen")) files["QWEN.md"] = AGENT_RULES;
+
+  return files;
+}
+
+function globalFiles(home = homedir(), targets) {
+  const selected = selectedSet(targets);
+  const files = {};
+
+  if (selected.has("claude")) {
+    Object.assign(files, {
     [`${home}/.claude/commands/idea.md`]: COMMAND_BRIDGE.replace("{command}", "/idea"),
     [`${home}/.claude/commands/do.md`]: COMMAND_BRIDGE.replace("{command}", "/do"),
     [`${home}/.claude/commands/ship.md`]: COMMAND_BRIDGE.replace("{command}", "/ship"),
     [`${home}/.claude/commands/open-project-idea.md`]: COMMAND_BRIDGE.replace("{command}", "/idea"),
     [`${home}/.claude/commands/open-project-do.md`]: COMMAND_BRIDGE.replace("{command}", "/do"),
-    [`${home}/.claude/commands/open-project-ship.md`]: COMMAND_BRIDGE.replace("{command}", "/ship"),
-    [`${home}/.codex/AGENTS.md`]: AGENT_RULES,
-    [`${home}/.opencode/AGENTS.md`]: AGENT_RULES,
-    [`${home}/.config/opencode/AGENTS.md`]: AGENT_RULES,
-    [`${home}/.cursor/rules/open-project.mdc`]: RULE_FILE,
-    [`${home}/.windsurf/rules/open-project.md`]: RULE_FILE,
-    [`${home}/.continue/rules/open-project.md`]: AGENT_RULES,
-    [`${home}/.gemini/GEMINI.md`]: AGENT_RULES,
-    [`${home}/.qwen/QWEN.md`]: AGENT_RULES
-  };
+    [`${home}/.claude/commands/open-project-ship.md`]: COMMAND_BRIDGE.replace("{command}", "/ship")
+    });
+  }
+  if (selected.has("codex")) files[`${home}/.codex/AGENTS.md`] = AGENT_RULES;
+  if (selected.has("opencode")) {
+    files[`${home}/.opencode/AGENTS.md`] = AGENT_RULES;
+    files[`${home}/.config/opencode/AGENTS.md`] = AGENT_RULES;
+  }
+  if (selected.has("cursor")) files[`${home}/.cursor/rules/open-project.mdc`] = RULE_FILE;
+  if (selected.has("windsurf")) files[`${home}/.windsurf/rules/open-project.md`] = RULE_FILE;
+  if (selected.has("continue")) files[`${home}/.continue/rules/open-project.md`] = AGENT_RULES;
+  if (selected.has("gemini")) files[`${home}/.gemini/GEMINI.md`] = AGENT_RULES;
+  if (selected.has("qwen")) files[`${home}/.qwen/QWEN.md`] = AGENT_RULES;
+
+  return files;
 }
 
-export async function installIntegrations({ home = homedir(), includeGlobal = true } = {}) {
+export async function installIntegrations({ home = homedir(), includeGlobal = true, targets = ["all"] } = {}) {
   const files = {
-    ...projectFiles(),
-    ...(includeGlobal ? globalFiles(home) : {})
+    ...projectFiles(targets),
+    ...(includeGlobal ? globalFiles(home, targets) : {})
   };
 
   const result = [];

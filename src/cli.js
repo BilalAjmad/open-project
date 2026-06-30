@@ -3,6 +3,7 @@ import { ensureState, approveLatestPlan, readApprovedPlan, saveLatestPlan, write
 import { parseOptions, resolveEngine, runEngine } from "./engine.js";
 import { isApproval, parseCommand, requireInput, validatePrompt, wantsLatestPlan } from "./gates.js";
 import { installIntegrations } from "./integrations.js";
+import { selectIntegrationTargets } from "./select.js";
 
 export async function runCli(rawArgs) {
   const { options, rest } = parseOptions(rawArgs);
@@ -11,7 +12,14 @@ export async function runCli(rawArgs) {
   await ensureState();
 
   if (command === "install") {
-    const files = await installIntegrations();
+    const requestedTargets = input
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter((arg) => !arg.startsWith("--"));
+    const targets = input.includes("--all") || requestedTargets.length
+      ? (requestedTargets.length ? requestedTargets : ["all"])
+      : await selectIntegrationTargets();
+    const files = await installIntegrations({ targets });
     console.log("open project integrations installed:");
     for (const file of files) console.log(`- ${file.status} (${file.scope}): ${file.path}`);
     return;

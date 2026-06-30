@@ -192,6 +192,49 @@ If something may be stale, deprecated, or uncertain, the AI coder must verify it
 
 There are two install layers.
 
+## One Command Setup
+
+After installing the package, users paste one command in the terminal:
+
+```bash
+open-project install
+```
+
+This opens an interactive selector:
+
+```text
+open project install
+Select AI coding tools to integrate:
+Space = select, a = all, Enter = install, q = cancel
+
+> [x] Claude Code slash commands
+  [x] Codex global instructions
+  [x] OpenCode instructions
+  [x] Cursor rules
+  [x] Windsurf rules
+  [x] GitHub Copilot instructions
+  [x] Continue rules
+  [x] Gemini CLI instructions
+  [x] Qwen Code instructions
+  [x] Common project instruction files
+```
+
+The user can select one, many, or all AI coding tools. Pressing **Space** toggles a tool. Pressing **Enter** installs `open project` into every selected tool.
+
+For users who want everything without the selector:
+
+```bash
+open-project install --all
+```
+
+For users who want a direct command:
+
+```bash
+open-project install claude codex opencode cursor windsurf copilot continue gemini qwen
+```
+
+That is the intended setup experience.
+
 ### 1. Install The Terminal Command
 
 From this repository:
@@ -214,7 +257,30 @@ Run this once from any project folder:
 open-project install
 ```
 
-This creates two layers of integration files.
+This opens a terminal selector:
+
+```text
+Space = select
+a     = select/unselect all
+Enter = install
+q     = cancel
+```
+
+The user chooses which AI coding tools to integrate. Then `open project` installs the selected integrations into both the current project and the user profile.
+
+For fully automatic install into every supported target:
+
+```bash
+open-project install --all
+```
+
+For direct selected install:
+
+```bash
+open-project install claude codex opencode cursor windsurf copilot continue gemini qwen
+```
+
+This creates two layers of integration files depending on what was selected.
 
 Project-level files:
 
@@ -256,6 +322,12 @@ Existing files are skipped, not overwritten.
 After this, tools that understand those files can see the `open project` rules. Claude Code gets slash command files for `/idea`, `/do`, and `/ship`. Other AI IDEs get rules/instruction files that tell them to use `open-project`.
 
 Important: every AI IDE has different extension and command support. `open-project install` adds the safest known project and global files. It cannot force a closed-source IDE to support custom slash commands if that IDE does not expose them.
+
+Practical result:
+
+- Claude Code can show global slash commands like `/idea`, `/do`, and `/ship` after a new session/restart.
+- Codex, OpenCode, Gemini, Qwen, Cursor, Windsurf, Continue, and Copilot-style tools receive global/project instruction files where supported.
+- If a tool does not support custom slash commands, it can still read the rules and use the terminal command `open-project`.
 
 ## The Work Commands
 

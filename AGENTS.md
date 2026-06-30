@@ -1,7 +1,7 @@
 # open project agent rules
 
 - The work slash commands are `/idea`, `/do`, and `/ship`.
-- The non-slash `install` command writes project-level AI IDE integration files.
+- The non-slash `install` command opens an AI coding tool selector and writes project-level plus device-wide integration files.
 - There is no `/setup` command. Setup is normal package installation, `open-project install`, plus optional `--engine`.
 - Never bundle an AI model or require an API key.
 - Use the user's installed AI coding engine or AI IDE adapter.

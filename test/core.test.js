@@ -63,3 +63,22 @@ test("installer creates AI IDE integration files without overwriting existing fi
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("installer can target selected AI coding tools", async () => {
+  const originalCwd = process.cwd();
+  const dir = await mkdtemp(join(tmpdir(), "open-project-selected-"));
+  const home = await mkdtemp(join(tmpdir(), "open-project-selected-home-"));
+  try {
+    process.chdir(dir);
+
+    const result = await installIntegrations({ home, targets: ["claude", "opencode"] });
+    assert.equal(result.some((file) => file.path === ".claude/commands/do.md"), true);
+    assert.equal(result.some((file) => file.path === ".opencode/AGENTS.md"), true);
+    assert.equal(result.some((file) => file.path === ".cursor/rules/open-project.mdc"), false);
+    assert.match(await readFile(join(home, ".opencode/AGENTS.md"), "utf8"), /open project/);
+  } finally {
+    process.chdir(originalCwd);
+    await rm(dir, { recursive: true, force: true });
+    await rm(home, { recursive: true, force: true });
+  }
+});

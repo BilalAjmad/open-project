@@ -206,15 +206,17 @@ This makes the terminal command available:
 open-project
 ```
 
-### 2. Add AI IDE Integrations To The Current Project
+### 2. Add AI IDE Integrations To The Current Project And Device
 
-Run this inside the project where you want AI IDE support:
+Run this once from any project folder:
 
 ```bash
 open-project install
 ```
 
-This creates integration files for common AI coding tools:
+This creates two layers of integration files.
+
+Project-level files:
 
 ```text
 .claude/commands/idea.md
@@ -230,11 +232,30 @@ GEMINI.md
 QWEN.md
 ```
 
+Device-wide/global files:
+
+```text
+~/.claude/commands/idea.md
+~/.claude/commands/do.md
+~/.claude/commands/ship.md
+~/.claude/commands/open-project-idea.md
+~/.claude/commands/open-project-do.md
+~/.claude/commands/open-project-ship.md
+~/.codex/AGENTS.md
+~/.opencode/AGENTS.md
+~/.config/opencode/AGENTS.md
+~/.cursor/rules/open-project.mdc
+~/.windsurf/rules/open-project.md
+~/.continue/rules/open-project.md
+~/.gemini/GEMINI.md
+~/.qwen/QWEN.md
+```
+
 Existing files are skipped, not overwritten.
 
-After this, tools that understand those files can see the `open project` rules. Claude Code gets project slash command files for `/idea`, `/do`, and `/ship`. Other AI IDEs get rules/instruction files that tell them to use `open-project`.
+After this, tools that understand those files can see the `open project` rules. Claude Code gets slash command files for `/idea`, `/do`, and `/ship`. Other AI IDEs get rules/instruction files that tell them to use `open-project`.
 
-Important: every AI IDE has different extension and command support. `open-project install` adds the safest project-level files. It cannot force a closed-source IDE to support custom slash commands if that IDE does not expose them.
+Important: every AI IDE has different extension and command support. `open-project install` adds the safest known project and global files. It cannot force a closed-source IDE to support custom slash commands if that IDE does not expose them.
 
 ## The Work Commands
 
@@ -642,7 +663,7 @@ When you run it:
 4. It sends the prompt to the selected AI coding engine if available.
 5. If no engine is found, it prints the full prompt so you can paste it into any AI IDE or coding agent.
 
-After `open-project install`, your current project gets AI IDE instruction files. That is the part that makes Claude Code/Cursor/Windsurf/Copilot-style tools aware of `open project`.
+After `open-project install`, your current project and user profile get AI IDE instruction files. That is the part that makes Claude Code/Cursor/Windsurf/Copilot/OpenCode/Codex-style tools aware of `open project`.
 
 ## Local State
 

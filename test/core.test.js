@@ -44,17 +44,22 @@ test("registry covers broad AI coding engines and IDE adapters", () => {
 test("installer creates AI IDE integration files without overwriting existing files", async () => {
   const originalCwd = process.cwd();
   const dir = await mkdtemp(join(tmpdir(), "open-project-"));
+  const home = await mkdtemp(join(tmpdir(), "open-project-home-"));
   try {
     process.chdir(dir);
     await writeFile("CLAUDE.md", "keep me", "utf8");
 
-    const result = await installIntegrations();
+    const result = await installIntegrations({ home });
     assert.equal(result.some((file) => file.path === ".claude/commands/idea.md" && file.status === "created"), true);
     assert.equal(result.some((file) => file.path === "CLAUDE.md" && file.status === "skipped"), true);
+    assert.equal(result.some((file) => file.path.endsWith("/.claude/commands/idea.md") && file.scope === "global"), true);
+    assert.equal(result.some((file) => file.path.endsWith("/.codex/AGENTS.md") && file.scope === "global"), true);
     assert.match(await readFile(".cursor/rules/open-project.mdc", "utf8"), /30\/6\/2026/);
+    assert.match(await readFile(join(home, ".claude/commands/do.md"), "utf8"), /open-project \/do/);
     assert.equal(await readFile("CLAUDE.md", "utf8"), "keep me");
   } finally {
     process.chdir(originalCwd);
     await rm(dir, { recursive: true, force: true });
+    await rm(home, { recursive: true, force: true });
   }
 });

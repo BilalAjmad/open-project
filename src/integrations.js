@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { dirname } from "node:path";
 
 const COMMAND_BRIDGE = `Use the local open project CLI for this command.
@@ -47,8 +48,8 @@ async function writeText(path, content) {
   }
 }
 
-export async function installIntegrations() {
-  const files = {
+function projectFiles() {
+  return {
     ".claude/commands/idea.md": COMMAND_BRIDGE.replace("{command}", "/idea"),
     ".claude/commands/do.md": COMMAND_BRIDGE.replace("{command}", "/do"),
     ".claude/commands/ship.md": COMMAND_BRIDGE.replace("{command}", "/ship"),
@@ -61,10 +62,37 @@ export async function installIntegrations() {
     "GEMINI.md": AGENT_RULES,
     "QWEN.md": AGENT_RULES
   };
+}
+
+function globalFiles(home = homedir()) {
+  return {
+    [`${home}/.claude/commands/idea.md`]: COMMAND_BRIDGE.replace("{command}", "/idea"),
+    [`${home}/.claude/commands/do.md`]: COMMAND_BRIDGE.replace("{command}", "/do"),
+    [`${home}/.claude/commands/ship.md`]: COMMAND_BRIDGE.replace("{command}", "/ship"),
+    [`${home}/.claude/commands/open-project-idea.md`]: COMMAND_BRIDGE.replace("{command}", "/idea"),
+    [`${home}/.claude/commands/open-project-do.md`]: COMMAND_BRIDGE.replace("{command}", "/do"),
+    [`${home}/.claude/commands/open-project-ship.md`]: COMMAND_BRIDGE.replace("{command}", "/ship"),
+    [`${home}/.codex/AGENTS.md`]: AGENT_RULES,
+    [`${home}/.opencode/AGENTS.md`]: AGENT_RULES,
+    [`${home}/.config/opencode/AGENTS.md`]: AGENT_RULES,
+    [`${home}/.cursor/rules/open-project.mdc`]: RULE_FILE,
+    [`${home}/.windsurf/rules/open-project.md`]: RULE_FILE,
+    [`${home}/.continue/rules/open-project.md`]: AGENT_RULES,
+    [`${home}/.gemini/GEMINI.md`]: AGENT_RULES,
+    [`${home}/.qwen/QWEN.md`]: AGENT_RULES
+  };
+}
+
+export async function installIntegrations({ home = homedir(), includeGlobal = true } = {}) {
+  const files = {
+    ...projectFiles(),
+    ...(includeGlobal ? globalFiles(home) : {})
+  };
 
   const result = [];
   for (const [path, content] of Object.entries(files)) {
-    result.push({ path, status: await writeText(path, content) });
+    const scope = path.startsWith(home) ? "global" : "project";
+    result.push({ path, scope, status: await writeText(path, content) });
   }
 
   return result;

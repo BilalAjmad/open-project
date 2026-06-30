@@ -13,7 +13,7 @@ export async function runCli(rawArgs) {
   if (command === "install") {
     const files = await installIntegrations();
     console.log("open project integrations installed:");
-    for (const file of files) console.log(`- ${file.status}: ${file.path}`);
+    for (const file of files) console.log(`- ${file.status} (${file.scope}): ${file.path}`);
     return;
   }
 
